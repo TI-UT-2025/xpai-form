@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>X-PAI データ入力フォーム（ローカル専用）</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Yu Gothic", sans-serif;
+      margin: 20px;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      margin-bottom: 0.3em;
+    }
+    fieldset {
+      margin-bottom: 1em;
+      padding: 1em;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.4em;
+    }
+    input, select, textarea, button {
+      font-size: 0.95rem;
+    }
+    .inline {
+      display: inline-block;
+      margin-right: 1em;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 1em;
+      font-size: 0.85rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 4px 6px;
+      text-align: left;
+    }
+    th {
+      background-color: #f5f5f5;
+    }
+    .buttons {
+      margin-top: 1em;
+    }
+  </style>
+</head>
+<body>
+  <h1>X-PAI データ入力フォーム（ローカル用）</h1>
+  <p>
+    このフォームは <strong>ローカル環境のみ</strong> で動作します。<br>
+    入力データはブラウザ内で保持され、「CSVとして保存」ボタンで手元のPCにダウンロードされます。
+    サーバ送信や外部通信は行われません。
+  </p>
+
+  <form id="xpaiForm">
+    <fieldset>
+      <legend>基本情報</legend>
+
+      <label class="inline">
+        施設ID：
+        <input type="text" name="facility_id" required>
+      </label>
+
+      <label class="inline">
+        参加者ID：
+        <input type="text" name="participant_id" required>
+      </label>
+
+      <label class="inline">
+        診察日：
+        <input type="date" name="visit_date" required>
+      </label>
+
+      <label class="inline">
+        診察回数（例：1, 2）：
+        <input type="number" name="visit_number" min="1" step="1">
+      </label>
+
+      <label class="inline">
+        年齢：
+        <input type="number" name="age" min="0" step="1">
+      </label>
+
+      <label class="inline">
+        性別：
+        <select name="sex">
+          <option value="">選択してください</option>
+          <option value="M">男性</option>
+          <option value="F">女性</option>
+          <option value="O">その他</option>
+        </select>
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>バイタル・検査情報</legend>
+
+      <label class="inline">
+        SpO₂（％）：
+        <input type="number" name="spo2" min="0" max="100" step="1">
+      </label>
+
+      <label class="inline">
+        脈拍（回/分）：
+        <input type="number" name="pulse" min="0" step="1">
+      </label>
+
+      <label class="inline">
+        血圧（収縮期/拡張期, mmHg）：
+        <input type="number" name="bp_sys" min="0" step="1" style="width:5em;"> /
+        <input type="number" name="bp_dia" min="0" step="1" style="width:5em;">
+      </label>
+
+      <label class="inline">
+        呼吸数（回/分）：
+        <input type="number" name="resp_rate" min="0" step="1">
+      </label>
+
+      <label class="inline">
+        体温（℃）：
+        <input type="number" name="body_temp" step="0.1">
+      </label>
+
+      <label>
+        胸部レントゲン（肺炎像）：
+        <select name="cxr_pneumonia">
+          <option value="">判定未入力</option>
+          <option value="present">肺炎像あり</option>
+          <option value="absent">肺炎像なし</option>
+          <option value="uncertain">判定困難</option>
+        </select>
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>音声ファイル情報（ファイル名やID）</legend>
+
+      <p><strong>咳音（Cough）30秒 × 3回</strong></p>
+      <label>
+        咳音1 ファイル名／ID：
+        <input type="text" name="cough1">
+      </label>
+      <label>
+        咳音2 ファイル名／ID：
+        <input type="text" name="cough2">
+      </label>
+      <label>
+        咳音3 ファイル名／ID：
+        <input type="text" name="cough3">
+      </label>
+
+      <p><strong>肺音（Lung Sounds）30秒 × 3部位</strong></p>
+      <label>
+        肺音1（右背部下葉 RLB）ファイル名／ID：
+        <input type="text" name="lung_rlb">
+      </label>
+      <label>
+        肺音2（左背部下葉 LLB）ファイル名／ID：
+        <input type="text" name="lung_llb">
+      </label>
+      <label>
+        肺音3（前胸部右上葉 Front Right Lobe）ファイル名／ID：
+        <input type="text" name="lung_front">
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>備考</legend>
+      <label>
+        備考（自由記載）：
+        <textarea name="notes" rows="3" style="width:100%;"></textarea>
+      </label>
+    </fieldset>
+
+    <div class="buttons">
+      <button type="button" onclick="addRecord()">この症例を一覧に追加</button>
+      <button type="reset">フォームをクリア</button>
+    </div>
+  </form>
+
+  <h2>入力済みデータ一覧（ブラウザ内のみ保持）</h2>
+  <p>下表の内容はブラウザ内にのみ保存されています。「CSVとして保存」ボタンでローカルにダウンロードできます。</p>
+
+  <div class="buttons">
+    <button type="button" onclick="downloadCSV()">CSVとして保存</button>
+    <button type="button" onclick="clearRecords()">一覧をすべて削除</button>
+  </div>
+
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>施設ID</th>
+        <th>参加者ID</th>
+        <th>診察日</th>
+        <th>診察回数</th>
+        <th>年齢</th>
+        <th>性別</th>
+        <th>SpO₂</th>
+        <th>脈拍</th>
+        <th>収縮期BP</th>
+        <th>拡張期BP</th>
+        <th>呼吸数</th>
+        <th>体温</th>
+        <th>CXR肺炎像</th>
+        <th>咳1</th>
+        <th>咳2</th>
+        <th>咳3</th>
+        <th>肺RLB</th>
+        <th>肺LLB</th>
+        <th>肺Front</th>
+        <th>備考</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const records = [];
+
+    function addRecord() {
+      const form = document.getElementById('xpaiForm');
+      const data = new FormData(form);
+      const record = {
+        facility_id: data.get('facility_id') || '',
+        participant_id: data.get('participant_id') || '',
+        visit_date: data.get('visit_date') || '',
+        visit_number: data.get('visit_number') || '',
+        age: data.get('age') || '',
+        sex: data.get('sex') || '',
+        spo2: data.get('spo2') || '',
+        pulse: data.get('pulse') || '',
+        bp_sys: data.get('bp_sys') || '',
+        bp_dia: data.get('bp_dia') || '',
+        resp_rate: data.get('resp_rate') || '',
+        body_temp: data.get('body_temp') || '',
+        cxr_pneumonia: data.get('cxr_pneumonia') || '',
+        cough1: data.get('cough1') || '',
+        cough2: data.get('cough2') || '',
+        cough3: data.get('cough3') || '',
+        lung_rlb: data.get('lung_rlb') || '',
+        lung_llb: data.get('lung_llb') || '',
+        lung_front: data.get('lung_front') || '',
+        notes: data.get('notes') || ''
+      };
+
+      // 必須チェック（例：施設IDと参加者IDと診察日）
+      if (!record.facility_id || !record.participant_id || !record.visit_date) {
+        alert('施設ID・参加者ID・診察日は必須です。');
+        return;
+      }
+
+      records.push(record);
+      renderTable();
+      form.reset();
+    }
+
+    function renderTable() {
+      const tbody = document.querySelector('#dataTable tbody');
+      tbody.innerHTML = '';
+
+      records.forEach(rec => {
+        const tr = document.createElement('tr');
+        [
+          'facility_id', 'participant_id', 'visit_date', 'visit_number',
+          'age', 'sex', 'spo2', 'pulse', 'bp_sys', 'bp_dia',
+          'resp_rate', 'body_temp', 'cxr_pneumonia',
+          'cough1', 'cough2', 'cough3',
+          'lung_rlb', 'lung_llb', 'lung_front',
+          'notes'
+        ].forEach(key => {
+          const td = document.createElement('td');
+          td.textContent = rec[key];
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    function downloadCSV() {
+      if (records.length === 0) {
+        alert('まだデータがありません。');
+        return;
+      }
+
+      const header = [
+        'facility_id', 'participant_id', 'visit_date', 'visit_number',
+        'age', 'sex', 'spo2', 'pulse', 'bp_sys', 'bp_dia',
+        'resp_rate', 'body_temp', 'cxr_pneumonia',
+        'cough1', 'cough2', 'cough3',
+        'lung_rlb', 'lung_llb', 'lung_front',
+        'notes'
+      ];
+
+      const rows = [header];
+
+      records.forEach(rec => {
+        rows.push(header.map(key => {
+          const value = (rec[key] ?? '').toString();
+          // CSV用にダブルクオートで囲んで、内部の"をエスケープ
+          return `"${value.replace(/"/g, '""')}"`;
+        }));
+      });
+
+      const csvContent = rows.map(r => r.join(',')).join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      a.href = url;
+      a.download = `xpai_data_${y}${m}${d}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function clearRecords() {
+      if (!confirm('一覧のデータをすべて削除しますか？（保存済みのCSVには影響しません）')) {
+        return;
+      }
+      records.length = 0;
+      renderTable();
+    }
+  </script>
+</body>
+</html>
